@@ -63,6 +63,7 @@ type File struct {
 }
 
 type FileContents struct {
+	Base64 *bool  `yaml:"base64"`
 	Remote Remote `yaml:"remote"`
 	Inline string `yaml:"inline"`
 	Local  string `yaml:"local"`
@@ -158,11 +159,20 @@ func init() {
 			}
 
 			if file.Contents.Inline != "" {
-				newFile.Contents = ignTypes.FileContents{
-					Source: (&url.URL{
-						Scheme: "data",
-						Opaque: "," + dataurl.EscapeString(file.Contents.Inline),
-					}).String(),
+				if file.Contents.Base64 != nil && *file.Contents.Base64 {
+					newFile.Contents = ignTypes.FileContents{
+						Source: (&url.URL{
+							Scheme: "data",
+							Opaque: ";base64," + file.Contents.Inline,
+						}).String(),
+					}
+				} else {
+					newFile.Contents = ignTypes.FileContents{
+						Source: (&url.URL{
+							Scheme: "data",
+							Opaque: "," + dataurl.EscapeString(file.Contents.Inline),
+						}).String(),
+					}
 				}
 			}
 
